@@ -13,12 +13,14 @@ import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 
 import edu.wpi.first.wpilibj.AnalogInput;
+import edu.wpi.first.wpilibj.AnalogPotentiometer;
 import edu.wpi.first.wpilibj.CameraServer;
 //import edu.wpi.first.wpilibj.Compressor;
 //import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.interfaces.Potentiometer;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -38,8 +40,9 @@ public class Robot extends IterativeRobot {
 	// private Compressor compress;
 	private SpeedControllerGroup left, right, intake, arm, elevator;
 	private DifferentialDrive driveBase;
-	private AnalogInput pot;
 	
+	
+
 	@Override
 	public void robotInit() {
 
@@ -77,22 +80,21 @@ public class Robot extends IterativeRobot {
 		elevator = new SpeedControllerGroup(leftElevator, rightElevator);
 		driveBase = new DifferentialDrive(left, right);
 		
-		pot = new AnalogInput(0);
-
 		CameraServer.getInstance().startAutomaticCapture("FrontCamera", 1);
 		CameraServer.getInstance().startAutomaticCapture("BackCamera", 0);
 		
 	}
-
+	
 	@Override
 	public void teleopPeriodic() {
-		SmartDashboard.putNumber("pot", pot.getAverageVoltage());
 		
 		double leftY = driver.getRawAxis(Titan.Xbox.Axis.LEFT_Y);
 		double leftX = driver.getRawAxis(Titan.Xbox.Axis.LEFT_X);
 		
  		double drivespeed = 0.5;
 		
+ 		SmartDashboard.putNumber("pot",1);
+ 		
 		driveBase.tankDrive(leftY - leftX*drivespeed, leftY + leftX*drivespeed);
 		//driveBase.tankDrive(leftY, rightY);
 		
