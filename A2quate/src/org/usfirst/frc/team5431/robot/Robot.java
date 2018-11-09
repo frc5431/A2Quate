@@ -7,11 +7,15 @@
 
 package org.usfirst.frc.team5431.robot;
 
+import org.usfirst.frc.team5431.robot.Titan.LogitechExtreme3D;
+
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 
-import edu.wpi.first.wpilibj.Compressor;
-import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.AnalogInput;
+import edu.wpi.first.wpilibj.CameraServer;
+//import edu.wpi.first.wpilibj.Compressor;
+//import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
@@ -27,172 +31,104 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  */
 public class Robot extends IterativeRobot {
 	private WPI_VictorSPX frontLeft, frontRight, backLeft, backRight;
-	private WPI_TalonSRX leftIntake, rightIntake, leftArm, rightArm, leftElevator, rightElevator; 
-	private Titan.Xbox driverXbox, driver2Xbox;
-	private DoubleSolenoid intakePiston;
-	private Compressor compress;
+	private WPI_TalonSRX leftIntake, rightIntake, leftArm, rightArm, leftElevator, rightElevator;
+	private Titan.Xbox driver;
+	private LogitechExtreme3D operator;
+	// private DoubleSolenoid intakePiston;
+	// private Compressor compress;
 	private SpeedControllerGroup left, right, intake, arm, elevator;
 	private DifferentialDrive driveBase;
-  
+	private AnalogInput pot;
 	
 	@Override
 	public void robotInit() {
-      
-		compress = new Compressor(0);
-		compress.setClosedLoopControl(true);
-		intakePiston = new DoubleSolenoid(0, 1);
 
-		driverXbox = new Titan.Xbox(0);
-		
-		driverXbox.setDeadzone(.15);
-      
-        driver2Xbox = new Titan.Xbox(1);
-		
-		driver2Xbox.setDeadzone(.15);
-		
+		// compress = new Compressor(0);
+		// compress.setClosedLoopControl(true);
+		// intakePiston = new DoubleSolenoid(0, 1);
+
+		driver = new Titan.Xbox(0);
+		operator = new Titan.LogitechExtreme3D(1);
+		driver.setDeadzone(.15);
+		operator.setDeadzone(.15);
+
 		frontLeft = new WPI_VictorSPX(9);
 		frontRight = new WPI_VictorSPX(4);
-      
+
 		backLeft = new WPI_VictorSPX(7);
 		backRight = new WPI_VictorSPX(2);
-      
+
 		leftIntake = new WPI_TalonSRX(10);
-		rightIntake = new WPI_TalonSRX(5); rightIntake.setInverted(true);
-      
+		rightIntake = new WPI_TalonSRX(5);
+		rightIntake.setInverted(true);
+
 		leftArm = new WPI_TalonSRX(6);
-		rightArm = new WPI_TalonSRX(1); rightArm.setInverted(true);
-      
-     	leftElevator = new WPI_TalonSRX(3);
-		rightElevator = new WPI_TalonSRX(8); rightArm.setInverted(true);
-      
+		rightArm = new WPI_TalonSRX(1);
+		rightArm.setInverted(true);
+
+		leftElevator = new WPI_TalonSRX(3);
+		rightElevator = new WPI_TalonSRX(8);
+
 		left = new SpeedControllerGroup(frontLeft, backLeft);
 		right = new SpeedControllerGroup(frontRight, backRight);
-      
+
 		intake = new SpeedControllerGroup(leftIntake, rightIntake);
-		arm = new SpeedControllerGroup(leftArm,rightArm);
-		elevator = new SpeedControllerGroup(leftElevator,rightElevator);
+		arm = new SpeedControllerGroup(leftArm, rightArm);
+		elevator = new SpeedControllerGroup(leftElevator, rightElevator);
 		driveBase = new DifferentialDrive(left, right);
-      //	int timer = 0;
+		
+		pot = new AnalogInput(0);
+
+		CameraServer.getInstance().startAutomaticCapture("FrontCamera", 1);
+		CameraServer.getInstance().startAutomaticCapture("BackCamera", 0);
 		
 	}
 
 	@Override
 	public void teleopPeriodic() {
-		double leftY = driverXbox.getRawAxis(Titan.Xbox.Axis.LEFT_Y); 
-		double leftX = driverXbox.getRawAxis(Titan.Xbox.Axis.LEFT_X);
-      
-		//double rightY = driverXbox.getRawAxis(Titan.Xbox.Axis.RIGHT_Y); 
-		//double rightX = driverXbox.getRawAxis(Titan.Xbox.Axis.RIGHT_X);
-      
-		double doubleIntake1 = driverXbox.getRawAxis(Titan.Xbox.Axis.TRIGGER_RIGHT);
-		double doubleOutake1 = driverXbox.getRawAxis(Titan.Xbox.Axis.TRIGGER_LEFT);
-    	double doubleIntake2 = driver2Xbox.getRawAxis(Titan.Xbox.Axis.TRIGGER_RIGHT);
-		double doubleOutake2 = driver2Xbox.getRawAxis(Titan.Xbox.Axis.TRIGGER_LEFT);
-      
-		boolean rightBump1 = driverXbox.getRawButton(Titan.Xbox.Button.BUMPER_R);
-		boolean leftBump1 = driverXbox.getRawButton(Titan.Xbox.Button.BUMPER_L);
-      
-     	boolean rightBump2 = driver2Xbox.getRawButton(Titan.Xbox.Button.BUMPER_R);
-		boolean leftBump2 = driver2Xbox.getRawButton(Titan.Xbox.Button.BUMPER_L);
-      
-		boolean elevatorup1 = driverXbox.getRawButton(Titan.Xbox.Button.X);
-		boolean elevatordown1 = driverXbox.getRawButton(Titan.Xbox.Button.B);
-      
-		boolean elevatorup2 = driver2Xbox.getRawButton(Titan.Xbox.Button.X);
-		boolean elevatordown2 = driver2Xbox.getRawButton(Titan.Xbox.Button.B);
-
-		boolean pistonClose = driverXbox.getRawButton(Titan.Xbox.Button.A);
-		boolean pistonOpen = driverXbox.getRawButton(Titan.Xbox.Button.Y);
+		SmartDashboard.putNumber("pot", pot.getAverageVoltage());
 		
-		boolean pistonClose2 = driver2Xbox.getRawButton(Titan.Xbox.Button.A);
-		boolean pistonOpen2 = driver2Xbox.getRawButton(Titan.Xbox.Button.Y);
+		double leftY = driver.getRawAxis(Titan.Xbox.Axis.LEFT_Y);
+		double leftX = driver.getRawAxis(Titan.Xbox.Axis.LEFT_X);
 		
-		double drivespeed = 0.5;
-      
-        driveBase.tankDrive(leftY - leftX*drivespeed, leftY + leftX*drivespeed);
-      
-		//leftIntake.set(doubleIntake);
-		//leftArm.set(doubleIntake);
-		//rightArm.set(1);
+ 		double drivespeed = 0.5;
 		
-		double intakespeed = 1;
-      
-		if(doubleIntake1 > 0.15) {
-			intake.set(doubleIntake1*intakespeed);
-		}
-		else if(doubleOutake1 > 0.15) {
-			
-			intake.set(-doubleOutake1*intakespeed);
-		}
-		else {
-			intake.set(0);
+		driveBase.tankDrive(leftY - leftX*drivespeed, leftY + leftX*drivespeed);
+		//driveBase.tankDrive(leftY, rightY);
+		
+		if (operator.getRawButton(Titan.LogitechExtreme3D.Button.TRIGGER)) {
+			intake.set(0.75);
+		} else if (operator.getRawButton(Titan.LogitechExtreme3D.Button.TEN) || operator.getRawButton(Titan.LogitechExtreme3D.Button.NINE)) {
+			intake.set(-1);
+		} else {
+			intake.set(0);	
 		}
 		
-		if(doubleIntake2 > 0.15) {
-			intake.set(doubleIntake2*intakespeed);
-		}
-		else if( doubleOutake2 > 0.15) {
-			intake.set(-doubleOutake2*intakespeed);
-		}
-		else {
-			
-		}
-	
-		double armspeed = 0.35;
-      
-      	
+		arm.set(operator.getRawAxis(Titan.LogitechExtreme3D.Axis.Y)/2);
 		
-		 if(rightBump1 || rightBump2)
-		{
-			arm.set(armspeed);
-		}
-		else if(leftBump1 || leftBump2)
-		{
-			arm.set(-armspeed);
-		}
-		else
-		{
-			arm.set(0);
-		} 
-      
-      	double elevatorspeed = .5;
-      
-	 	if(elevatorup1 || elevatorup2)
-		{
-			elevator.set(-elevatorspeed);
-		}
-		else if(elevatordown1 || elevatordown2)
-		{
-			elevator.set(elevatorspeed);
-		}
-		else
-		{
+		double throttle = 1-((operator.getRawAxis(Titan.LogitechExtreme3D.Axis.SLIDER)+1)/2);
+		
+		if (operator.getPOV() == 0) {
+			elevator.set(throttle);
+			// hat is being pushed forward, extend the elevator
+		} else if (operator.getPOV() == 180) {
+			elevator.set(-throttle);
+			// hat is being pushed backward, retract the elevator
+		} else {
 			elevator.set(0);
-		} 
-	 	
-	 	
-	 	 if(pistonOpen || pistonOpen2)
-	 	{
-	 		intakePiston.set(DoubleSolenoid.Value.kForward);
-	 	}
-	 	else if(pistonClose || pistonClose2) 
-	 	{
-	 		intakePiston.set(DoubleSolenoid.Value.kReverse);
-	 	}
-	 	
-        
-		//compress.setClosedLoopControl(false);
-	}
-	
-		
-	
-	
-	
+			// hat is in it's default position, stop the elevator motors
+		}
 
-	/**
-	 * This function is called periodically during test mode.
-	 */
-	@Override
-	public void testPeriodic() {
+		// if(pistonOpen)
+		// {
+		// intakePiston.set(DoubleSolenoid.Value.kForward);
+		// }
+		// else if(pistonClose)
+		// {
+		// intakePiston.set(DoubleSolenoid.Value.kReverse);
+		// }
+
+		// compress.setClosedLoopControl(false);
 	}
+
 }
