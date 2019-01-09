@@ -18,6 +18,9 @@ import edu.wpi.first.wpilibj.CameraServer;
 //import edu.wpi.first.wpilibj.Compressor;
 //import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.IterativeRobot;
+import edu.wpi.first.wpilibj.PIDController;
+import edu.wpi.first.wpilibj.*;
+import edu.wpi.first.wpilibj.PIDSourceType;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.interfaces.Potentiometer;
@@ -40,16 +43,49 @@ public class Robot extends IterativeRobot {
 	// private Compressor compress;
 	private SpeedControllerGroup left, right, intake, arm, elevator;
 	private DifferentialDrive driveBase;
-	
-	
+	private AnalogInput pot;
+	private PIDController pid;
+	private boolean reachedTarget;
 
 	@Override
 	public void robotInit() {
-
 		// compress = new Compressor(0);
 		// compress.setClosedLoopControl(true);
 		// intakePiston = new DoubleSolenoid(0, 1);
+		boolean reachedTarget = false;
+		pid = new PIDController(0.5, 0, 0, 0, 
+				new PIDSource() {
 
+					@Override
+					public void setPIDSourceType(PIDSourceType pidSource) {
+						// TODO Auto-generated method stub
+						
+					}
+
+					@Override
+					public PIDSourceType getPIDSourceType() {
+						// TODO Auto-generated method stub
+						return PIDSourceType.kDisplacement;
+					}
+
+					@Override
+					public double pidGet() {
+						// TODO Auto-generated method stub
+						return pot.getAverageVoltage();
+					}
+			
+			
+		}, new PIDOutput() {
+
+			@Override
+			public void pidWrite(double output) {
+				// TODO Auto-generated method stub
+				if (!reachedTarget) {
+					SmartDashboard.putNumber("pid",output);
+					arm.set(-output);
+				}
+			}});
+		
 		driver = new Titan.Xbox(0);
 		operator = new Titan.LogitechExtreme3D(1);
 		driver.setDeadzone(.15);
@@ -80,9 +116,13 @@ public class Robot extends IterativeRobot {
 		elevator = new SpeedControllerGroup(leftElevator, rightElevator);
 		driveBase = new DifferentialDrive(left, right);
 		
+		pot = new AnalogInput(1);
+		
 		CameraServer.getInstance().startAutomaticCapture("FrontCamera", 1);
 		CameraServer.getInstance().startAutomaticCapture("BackCamera", 0);
-		
+
+		pid.setSetpoint(2.5);
+		pid.setEnabled(true);
 	}
 	
 	@Override
@@ -93,7 +133,7 @@ public class Robot extends IterativeRobot {
 		
  		double drivespeed = 0.5;
 		
- 		SmartDashboard.putNumber("pot",1);
+ 		SmartDashboard.putNumber("pot",pot.getAverageVoltage());
  		
 		driveBase.tankDrive(leftY - leftX*drivespeed, leftY + leftX*drivespeed);
 		//driveBase.tankDrive(leftY, rightY);
@@ -133,4 +173,15 @@ public class Robot extends IterativeRobot {
 		// compress.setClosedLoopControl(false);
 	}
 
+	
+	@Override
+	public void autonomousInit() {
+	pid.setSetpoint(2.5);
+	pid.setEnabled(true);
+	}
+	
+	@Override
+	public void autonomousPeriodic() {	
+	SmartDashboard.putNumber("pot",pot.getAverageVoltage());
+	}	
 }
