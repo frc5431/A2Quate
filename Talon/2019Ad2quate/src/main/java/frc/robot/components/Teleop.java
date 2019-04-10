@@ -8,7 +8,6 @@ public class Teleop {
     private Titan.Xbox driver;
     private Titan.LogitechExtreme3D operator;
 
-
     public Teleop(){
         driver = new Titan.Xbox(Constants.DRIVER_JOYSTICK_ID);
         driver.setDeadzone(Constants.DRIVER_JOYSTICK_DEADZONE);
@@ -36,7 +35,6 @@ public class Teleop {
 			robot.getIntake().intake(0);
 		}
 		
-        
         robot.getArm().arm(operator.getRawAxis(Titan.LogitechExtreme3D.Axis.Y)/2);
 		
 		double throttle = 1-((operator.getRawAxis(Titan.LogitechExtreme3D.Axis.SLIDER)+1)/2);
