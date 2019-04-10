@@ -20,6 +20,8 @@ public class Robot extends TimedRobot{
     private Intake intake;
 
     private Elevator elevator;
+    
+    private Dashboard dashboard;
 
     @Override
     public void robotInit(){
@@ -69,6 +71,10 @@ public class Robot extends TimedRobot{
 
     public Elevator getElevator(){
         return elevator;
+    }
+    
+    public Dashboard getDashboard(){
+        return dashboard;
     }
     
 }
